@@ -1,0 +1,23 @@
+.summary_row {
+    display: flex;
+    width: 100%;
+}
+
+.summary_block {
+    border: 1px solid black;
+}
+
+.summary_stat_text {
+    align-self: center;
+    font-size: 30px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: bisque;
+}
+
+.summary_stat {
+    align-self: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: bisque;
+}

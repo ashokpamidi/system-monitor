@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React WebSocket Client</title>
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/babel-standalone@7.22.9/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root" class="min-h-screen bg-gray-100 flex items-center justify-center"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function App() {
+            const [message, setMessage] = useState('');
+            const [messages, setMessages] = useState([]);
+            const [ws, setWs] = useState(null);
+            const [status, setStatus] = useState('Disconnected');
+
+            // Initialize WebSocket connection
+            useEffect(() => {
+                const websocket = new WebSocket('ws://localhost:8000/ws');
+                setWs(websocket);
+
+                websocket.onopen = () => {
+                    setStatus('Connected');
+                };
+
+                websocket.onmessage = (event) => {
+                    setMessages((prev) => [...prev, event.data]);
+                };
+
+                websocket.onclose = () => {
+                    setStatus('Disconnected');
+                };
+
+                websocket.onerror = (error) => {
+                    console.error('WebSocket Error:', error);
+                    setStatus('Error');
+                };
+
+                // Cleanup on component unmount
+                return () => {
+                    websocket.close();
+                };
+            }, []);
+
+            // Handle sending messages
+            const sendMessage = () => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(message);
+                    setMessage('');
+                } else {
+                    setMessages((prev) => [...prev, 'Error: Not connected']);
+                }
+            };
+
+            // Handle input change
+            const handleInputChange = (e) => {
+                setMessage(e.target.value);
+            };
+
+            // Handle Enter key press
+            const handleKeyPress = (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            };
+
+            return (
+                <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+                    <h1 className="text-2xl font-bold text-center text-gray-800 mb-4">WebSocket Chat</h1>
+                    <p className="text-sm text-gray-600 mb-4">Status: {status}</p>
+                    <div className="mb-4 h-64 overflow-y-auto border p-4 rounded bg-gray-50">
+                        {messages.map((msg, index) => (
+                            <div key={index} className="text-gray-700 mb-2">{msg}</div>
+                        ))}
+                    </div>
+                    <div className="flex space-x-2">
+                        <input
+                            type="text"
+                            value={message}
+                            onChange={handleInputChange}
+                            onKeyPress={handleKeyPress}
+                            placeholder="Type a message..."
+                            className="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <button
+                            onClick={sendMessage}
+                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                            Send
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
