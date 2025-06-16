@@ -7,8 +7,9 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import delete
 from sqlalchemy import String
 
+from Queue import Queue
+
 buffer: List[Dict] = []
-MAX_BUFFER_LEN = 20
 db_path = "../data/systemMonitoring.db"
 table_name = 'app_data'
 log = []
@@ -37,6 +38,7 @@ def check_if_table_exists():
 
 def save_to_buffer(observation):
     print(f"length of buffer: {len(buffer)}")
+    Queue.enqueue(observation)
     buffer.append(observation)
 
 def housekeeping():
@@ -69,10 +71,5 @@ def clear_buffer():
         finally:
             session.close()
     else:
-        print("Buffer is empty!")
-
-async def initiate_clear_buffer():
-    while True:
-        clear_buffer()
-        await asyncio.sleep(10)    
+        print("Buffer is empty!") 
     

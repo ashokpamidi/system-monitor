@@ -29,9 +29,3 @@ def make_observation():
         result =  {'timestamp':timestamp, 'total_active_processes': cnt, 'app_name': 'Unknown', 'cursor_position': cursor_position}
     
     return result
-
-async def initiate_make_observation():
-    while True:
-        observation = make_observation()
-        save_to_buffer(observation)
-        await asyncio.sleep(1)
