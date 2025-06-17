@@ -7,9 +7,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import delete
 from sqlalchemy import String
 
-from Queue import Queue
-
-buffer: List[Dict] = []
+QUEUE_LEN = 50
 db_path = "../data/systemMonitoring.db"
 table_name = 'app_data'
 log = []
@@ -36,10 +34,10 @@ def check_if_table_exists():
         Base.metadata.create_all(engine)
         log.append("Successfully created the table.\n")
 
-def save_to_buffer(observation):
-    print(f"length of buffer: {len(buffer)}")
-    Queue.enqueue(observation)
-    buffer.append(observation)
+def save_to_buffer(q, observation):
+    if q.size() > QUEUE_LEN:
+        q.dequeue()
+    q.enqueue(observation)
 
 def housekeeping():
     Session = sessionmaker(bind=engine)
@@ -52,17 +50,24 @@ def housekeeping():
     session.commit()
     session.close()
 
-def clear_buffer():
+def clear_buffer(q):
     print("clearing buffer")
-    if buffer:
+    temp = []
+    current = q.front
+    while current != None:
+        current = current.next
+        if current != None:
+            temp.append(current.data)
+    
+    if temp:
         print('writing to db')
         Session = sessionmaker(bind=engine)
         session = Session()
         
         try: 
-            session.bulk_insert_mappings(appinfo, buffer)
+            session.bulk_insert_mappings(appinfo, temp)
             session.commit()
-            buffer.clear()
+            temp.clear()
             print('wrote to db')
         except Exception as e:
             print(e)

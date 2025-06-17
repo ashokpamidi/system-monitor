@@ -1,11 +1,7 @@
 import ctypes
 import psutil
 import win32api
-import json
-import asyncio
 import time
-
-from db_operations import save_to_buffer
 
 def make_observation():
     print("making an observation....")

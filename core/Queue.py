@@ -1,6 +1,8 @@
+import threading
+
 class Node:
-    def __init__(self):
-        self.data = None
+    def __init__(self, data):
+        self.data = data
         self.next = None
 
 class Queue:
@@ -8,27 +10,30 @@ class Queue:
         self.front = None
         self.rear = None
         self.size = 0
+        self.lock = threading.Lock()
     
     def isEmpty(self):
         return self.size == 0
     
     def enqueue(self, item):
         new_node = Node(item)
-        if self.isEmpty():
-            self.front = new_node
-            self.rear = new_node
-        else:
-            self.rear.next = new_node
-            self.rear = new_node
-        self.size += 1  
+        with self.lock:
+            if self.isEmpty():
+                self.front = new_node
+                self.rear = new_node
+            else:
+                self.rear.next = new_node
+                self.rear = new_node
+            self.size += 1  
 
     def dequeue(self):
-        if self.isEmpty():
-            return None
-        else:
-            self.front = self.front.next
-            self.size -= 1
-        
-        if self.isEmpty():
-            self.rear = None
+        with self.lock:
+            if self.isEmpty():
+                return None
+            else:
+                self.front = self.front.next
+                self.size -= 1
+            
+            if self.isEmpty():
+                self.rear = None
     

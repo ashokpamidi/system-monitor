@@ -8,8 +8,8 @@ from sqlalchemy.orm import declarative_base,Session, sessionmaker
 from pydantic import BaseModel
 from typing import Optional
 import asyncio
-import websocket
-import time
+
+from ..main import cache_q
 
 db_full_path = r"..\data\systemMonitoring.db"
 sqlite_url = f'sqlite:///{db_full_path}'
@@ -58,7 +58,8 @@ async def send_data(websocket: WebSocket, session: Session = Depends(get_session
         while True:
             res = session.query(appinfo).order_by(desc(appinfo.id)).limit(1).first()
             # current_time = time.strftime('%H-%M-%S')
-            data = {'id': res.id,'timestamp': res.timestamp,'total_active_processes': res.total_active_processes,'app_name': res.app_name,'cursor_position': res.cursor_position}
+            data = cache_q.rear.data
+            # data = {'id': res.id,'timestamp': res.timestamp,'total_active_processes': res.total_active_processes,'app_name': res.app_name,'cursor_position': res.cursor_position}
             await websocket.send_json(data)
         
             await asyncio.sleep(1)
