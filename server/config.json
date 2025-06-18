@@ -1,0 +1,7 @@
+{
+    "db_name": "system_monitoring.db",
+    "table_name": "app_data",
+    "queue_len": 50,
+    "observation_interval": 1
+}
+
