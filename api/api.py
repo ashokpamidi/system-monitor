@@ -9,15 +9,21 @@ from pydantic import BaseModel
 from typing import Optional
 import asyncio
 
-from ..main import cache_q
+from main import cache_q
 
-db_full_path = r"..\data\systemMonitoring.db"
+
+db_full_path = r"..\data\system_monitoring.db"
 sqlite_url = f'sqlite:///{db_full_path}'
 connect_args = {'check_same_thread': False} #this allows api to use the same db in different threads which is useful if one single request is using multiple threads
 
 engine = create_engine(sqlite_url, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+# cache_q = None
+# def set_queue(q):
+#     global cache_q
+#     cache_q = q
 
 class appinfo(Base):
     __tablename__ = 'app_data'
@@ -58,7 +64,9 @@ async def send_data(websocket: WebSocket, session: Session = Depends(get_session
         while True:
             res = session.query(appinfo).order_by(desc(appinfo.id)).limit(1).first()
             # current_time = time.strftime('%H-%M-%S')
-            data = cache_q.rear.data
+            rear = await cache_q.peek()
+            if rear:
+                data = cache_q.rear.data
             # data = {'id': res.id,'timestamp': res.timestamp,'total_active_processes': res.total_active_processes,'app_name': res.app_name,'cursor_position': res.cursor_position}
             await websocket.send_json(data)
         

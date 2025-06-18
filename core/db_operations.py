@@ -1,22 +1,27 @@
-import asyncio
 from datetime import datetime, timedelta
-from typing import List, Dict
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy import inspect
 from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy import delete
 from sqlalchemy import String
+import os
+
+DB_DIR = os.path.join(os.path.dirname(__file__), '..','data')
+os.makedirs(DB_DIR, exist_ok=True)
+DB_PATH = os.path.join(DB_DIR, 'system_monitoring.db')
+TABLE_NAME = 'app_data'
 
 QUEUE_LEN = 50
-db_path = "../data/systemMonitoring.db"
-table_name = 'app_data'
 log = []
 
 Base = declarative_base()
-engine = create_engine(rf'sqlite:///{db_path}')
+engine = create_engine(rf'sqlite:///{DB_PATH}')
+
+def db_init():
+    with engine.connect():
+        pass
 
 class appinfo(Base):
-    __tablename__ = table_name
+    __tablename__ = TABLE_NAME
     id = Column(Integer, primary_key=True, autoincrement=True)
     timestamp = Column(String, nullable=False)
     app_name = Column(String, nullable=False)
@@ -27,7 +32,7 @@ class appinfo(Base):
 def check_if_table_exists():
     print("checking if table exits")
     inspector = inspect(engine)
-    if inspector.has_table(table_name):
+    if inspector.has_table(TABLE_NAME):
         log.append("Table already exists. Not created again.\n")
     else:
         log.append("Table does not exist. Creating....")
@@ -35,8 +40,9 @@ def check_if_table_exists():
         log.append("Successfully created the table.\n")
 
 def save_to_buffer(q, observation):
-    if q.size() > QUEUE_LEN:
+    if q.size > QUEUE_LEN:
         q.dequeue()
+    print(q.size)
     q.enqueue(observation)
 
 def housekeeping():

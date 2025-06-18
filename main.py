@@ -1,10 +1,12 @@
 import asyncio
 
 from core.monitor import make_observation
-from core.db_operations import check_if_table_exists, housekeeping, save_to_buffer, clear_buffer 
-from core.Queue import Queue
+from core.db_operations import db_init, check_if_table_exists, housekeeping, save_to_buffer, clear_buffer 
+from cache.Queue import get_queue
+# from api.api import set_queue
 
-cache_q: Queue = Queue()
+cache_q = get_queue()
+# set_queue(cache_q)
 
 OBSERVATION_INTERVAL = 1
 MAX_BUFFER_LEN = 10
@@ -21,6 +23,7 @@ async def initiate_clear_buffer():
         await asyncio.sleep(MAX_BUFFER_LEN)   
 
 async def main():
+    db_init()
     check_if_table_exists()
     housekeeping()
     observation_task = asyncio.create_task(initiate_make_observation())

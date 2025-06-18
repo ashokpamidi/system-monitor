@@ -1,4 +1,5 @@
 import threading
+import asyncio
 
 class Node:
     def __init__(self, data):
@@ -36,4 +37,10 @@ class Queue:
             
             if self.isEmpty():
                 self.rear = None
+    
+    def peek(self):
+        return self.rear
+                
+def get_queue():
+    return asyncio.Queue()
     
