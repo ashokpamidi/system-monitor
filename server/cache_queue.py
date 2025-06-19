@@ -1,5 +1,4 @@
 import threading
-import asyncio
 
 class Node:
     def __init__(self, data):
@@ -42,3 +41,8 @@ class CacheQueue:
     
     def peek(self):
         return self.rear
+    
+    def clear(self):
+        self.front = None
+        self.rear = None
+        self.size = 0

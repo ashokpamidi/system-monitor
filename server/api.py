@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, sessionmaker
 import asyncio
 
-from .config import appinfo, engine
+from .config import engine
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -39,12 +39,10 @@ async def send_data(websocket: WebSocket, session: Session = Depends(get_session
      
     try:
         while True:
-            res = session.query(appinfo).order_by(desc(appinfo.id)).limit(1).first()
-            # current_time = time.strftime('%H-%M-%S')
-            rear = await cache_q.peek()
+            rear = cache_q.peek()
             if rear:
                 data = cache_q.rear.data
-            # data = {'id': res.id,'timestamp': res.timestamp,'total_active_processes': res.total_active_processes,'app_name': res.app_name,'cursor_position': res.cursor_position}
+            
             await websocket.send_json(data)
         
             await asyncio.sleep(1)

@@ -41,7 +41,6 @@ def write_to_db(q):
         try: 
             session.bulk_insert_mappings(appinfo, temp)
             session.commit()
-            temp.clear()
             print('wrote to db')
         except Exception as e:
             print(e)

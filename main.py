@@ -27,6 +27,7 @@ async def initiate_write_to_db():
     housekeeping()
     while True:
         write_to_db(cache_q)
+        cache_q.clear()
         await asyncio.sleep(QUEUE_LEN)   
 
 async def main():
@@ -34,11 +35,12 @@ async def main():
     write_to_db_task = asyncio.create_task(initiate_write_to_db())
     set_queue(cache_q)
 
-    api_config = uvicorn.Config(app, host = "0.0.0.0", port=8000)
+    api_config = uvicorn.Config(app, host = "0.0.0.0", port=8000, reload=True)
     server = uvicorn.Server(api_config)
-    api_server_task = asyncio.create_task(server.serve())
+    await server.serve()
+    # api_server_task = asyncio.create_task(server.serve())
 
-    await asyncio.gather(observation_task, write_to_db_task, api_server_task)
+    await asyncio.gather(observation_task, write_to_db_task)
 
 if __name__ == '__main__':
     asyncio.run(main())
